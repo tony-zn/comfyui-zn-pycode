@@ -18,7 +18,12 @@ app.registerExtension({
             if (originalOnConnectionsChange) {
                 originalOnConnectionsChange.call(this, slotType, slotIndex, links);
             }
-            
+            if (!this.hiddenInputs){
+                this.hiddenInputs = [];
+            }
+            if (!this.hiddenOutputs){
+                this.hiddenOutputs = [];
+            }
             const isInput = typeof slotType == 'number' ? slotType === 1 : slotType === 'input';
             const prefix = isInput ? INPUT_PREFIX : OUTPUT_PREFIX;
             let currentSlots = isInput ? this.inputs : this.outputs;
@@ -39,23 +44,42 @@ app.registerExtension({
             if (originalOnAdded) {
                 originalOnAdded.call(this, graph);
             }
-            this.hiddenInputs = [];
-            this.hiddenOutputs = [];
-            this.updateSlotVisibility(this.inputs, this.hiddenInputs, INPUT_PREFIX, this.getDisplayCount(this.inputs, INPUT_PREFIX));
-            this.updateSlotVisibility(this.outputs, this.hiddenOutputs, OUTPUT_PREFIX, this.getDisplayCount(this.outputs, OUTPUT_PREFIX));
+            if (!this.hiddenInputs){
+                this.hiddenInputs = [];
+            }
+            if (!this.hiddenOutputs){
+                this.hiddenOutputs = [];
+            }
+            this.updateSlotVisibility(this.inputs, this.hiddenInputs, INPUT_PREFIX, this.getDisplayCount(this.inputs, INPUT_PREFIX, true), true);
+            this.updateSlotVisibility(this.outputs, this.hiddenOutputs, OUTPUT_PREFIX, this.getDisplayCount(this.outputs, OUTPUT_PREFIX, false), false);
         }
 
         const originalOnRemoved = nodeType.prototype.onRemoved;
         nodeType.prototype.onRemoved = function(){
-            for(let i = 1; i <= MAX_PARAM_COUN; i++){
-                this.moveSlot(this.inputs, this.hiddenInputs, `${INPUT_PREFIX}${i}`, this.inputs);
-                this.moveSlot(this.outputs, this.hiddenOutputs, `${OUTPUT_PREFIX}${i}`, this.outputs);
-            }
+            this.restorHidden();
             if (originalOnRemoved) {
                 originalOnRemoved.call(this);
             }
         }
-        
+        const originalClone = nodeType.prototype.clone;
+        // 克隆时要恢复接口
+        nodeType.prototype.clone = function(){
+            if (!originalClone){
+                return null;
+            }
+            this.restorHidden();
+            const node = originalClone.call(this);
+            this.updateSlotVisibility(this.inputs, this.hiddenInputs, INPUT_PREFIX, this.getDisplayCount(this.inputs, INPUT_PREFIX, true), true);
+            this.updateSlotVisibility(this.outputs, this.hiddenOutputs, OUTPUT_PREFIX, this.getDisplayCount(this.outputs, OUTPUT_PREFIX, false), false);
+            return node;
+        };
+        // 恢复所有隐藏
+        nodeType.prototype.restorHidden = function(){
+            for(let i = 1; i <= MAX_PARAM_COUN; i++){
+                this.moveSlot(this.inputs, this.hiddenInputs, `${INPUT_PREFIX}${i}`, this.inputs);
+                this.moveSlot(this.outputs, this.hiddenOutputs, `${OUTPUT_PREFIX}${i}`, this.outputs);
+            }
+        }
         // 从1开始顺序遍历，直到遇到无连接的插槽或达到最大值
         nodeType.prototype.getDisplayCount = function(slots, prefix, isInput) {
             for (let i = 1; i <= MAX_PARAM_COUN; i++) {
@@ -96,7 +120,7 @@ app.registerExtension({
                 if (i <= displayCount){
                     this.moveSlot(currentSlots, hiddenSlots, slotName, currentSlots);
                 }
-                else{
+                else if (this.graph != null && this.graph != undefined){
                     if (isInput){
                         this.disconnectInput(slotName, true)
                     }
