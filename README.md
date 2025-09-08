@@ -12,7 +12,6 @@ A custom ComfyUI node for running your own Python code to handle data flexibly. 
 ; security_level = normal
 security_level = weak
 ```
-Clone or download the repository and place the comfyui-zn-pycode folder into the ComfyUI/custom_nodes folder  
 
 # Usage
 * 输入插槽 param1 ~ param20 支持连接任意类型，只显示下一个未使用的插槽，其余插槽自动隐藏
