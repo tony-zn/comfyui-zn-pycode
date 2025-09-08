@@ -3,7 +3,15 @@
 A custom ComfyUI node for running your own Python code to handle data flexibly. It supports up to 20 input parameters and 20 output results, and will automatically show or hide unused slots based on whether the parameters and results are being used.
 
 # Installation
-克隆或下载仓库并将comfyui-zn-pycode文件夹放入ComfyUI/custom_nodes文件夹中  
+* 直接安装，克隆或下载仓库并将comfyui-zn-pycode文件夹放入ComfyUI/custom_nodes文件夹中  
+* 使用ComfyUI-Manager安装，搜索pycode即可找到插件，但因为本插件会执行自定义python代码，根据manager的规则被标记为UNSAFE无法直接安装,需要先修改安全等级再安装，找到ComfyUI目录/user/default/ComfyUI-Manager/config.ini修改安全等级
+* Install directly, clone or download the repository and place the comfyui-zn-pycode folder into the ComfyUI/custom_nodes folder
+* Install using ComfyUI-Manager, search for "pycode" to find the plugin. However, since this plugin executes custom Python code, it is marked as "UNSAFE" according to the manager's rules and cannot be installed directly. You need to modify the security level before installing. Navigate to the ComfyUI directory at /user/default/ComfyUI-Manager/config.ini to change the security level
+```ini
+; 将安装等级从normal改为weak
+; security_level = normal
+security_level = weak
+```
 Clone or download the repository and place the comfyui-zn-pycode folder into the ComfyUI/custom_nodes folder  
 
 # Usage
